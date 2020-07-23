@@ -38,6 +38,9 @@
 		</method>
 	</methods>
 	<members>
+		<member name="culling_enabled" type="bool" setter="set_culling_enabled" getter="get_culling_enabled" default="true">
+			Whether or not to cull objects that are deemed outside of the view frustum.
+		</member>
 		<member name="adjustment_brightness" type="float" setter="set_adjustment_brightness" getter="get_adjustment_brightness" default="1.0">
 			The global brightness value of the rendered scene. Effective only if [code]adjustment_enabled[/code] is [code]true[/code].
 		</member>

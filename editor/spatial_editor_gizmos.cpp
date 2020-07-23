@@ -1285,7 +1285,7 @@ void CameraSpatialGizmoPlugin::set_handle(EditorSpatialGizmo *p_gizmo, int p_idx
 	if (camera->get_projection() == Camera::PROJECTION_PERSPECTIVE) {
 		Transform gt2 = camera->get_global_transform();
 		float a = _find_closest_angle_to_half_pi_arc(s[0], s[1], 1.0, gt2);
-		camera->set("fov", CLAMP(a * 2.0, 1, 179));
+		camera->set("fov", CLAMP(a * 2.0, 0.0001, 179.9999));
 	} else {
 
 		Vector3 ra, rb;

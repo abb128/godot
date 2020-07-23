@@ -352,6 +352,7 @@ private:
 
 	void _cull_convex(Octant *p_octant, _CullConvexData *p_cull);
 	void _cull_aabb(Octant *p_octant, const AABB &p_aabb, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask);
+	void _just_get_all(Octant *p_octant, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask);
 	void _cull_segment(Octant *p_octant, const Vector3 &p_from, const Vector3 &p_to, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask);
 	void _cull_point(Octant *p_octant, const Vector3 &p_point, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask);
 
@@ -381,6 +382,7 @@ public:
 
 	int cull_convex(const Vector<Plane> &p_convex, T **p_result_array, int p_result_max, uint32_t p_mask = 0xFFFFFFFF);
 	int cull_aabb(const AABB &p_aabb, T **p_result_array, int p_result_max, int *p_subindex_array = NULL, uint32_t p_mask = 0xFFFFFFFF);
+	int just_get_all(T **p_result_array, int p_result_max, int *p_subindex_array = NULL, uint32_t p_mask = 0xFFFFFFFF);
 	int cull_segment(const Vector3 &p_from, const Vector3 &p_to, T **p_result_array, int p_result_max, int *p_subindex_array = NULL, uint32_t p_mask = 0xFFFFFFFF);
 
 	int cull_point(const Vector3 &p_point, T **p_result_array, int p_result_max, int *p_subindex_array = NULL, uint32_t p_mask = 0xFFFFFFFF);
@@ -567,7 +569,8 @@ void Octree<T, use_pairs, AL>::_ensure_valid_root(const AABB &p_aabb) {
 
 		while (!base.encloses(p_aabb)) {
 
-			ERR_FAIL_COND_MSG(base.size.x > OCTREE_SIZE_LIMIT, "Octree upper size limit reached, does the AABB supplied contain NAN?");
+			// huge support
+			// ERR_FAIL_COND_MSG(base.size.x > OCTREE_SIZE_LIMIT, "Octree upper size limit reached, does the AABB supplied contain NAN?");
 
 			Octant *gp = memnew_allocator(Octant, AL);
 			octant_count++;
@@ -794,12 +797,14 @@ OctreeElementID Octree<T, use_pairs, AL>::create(T *p_userdata, const AABB &p_aa
 
 // check for AABB validity
 #ifdef DEBUG_ENABLED
+/* // huge support
 	ERR_FAIL_COND_V(p_aabb.position.x > 1e15 || p_aabb.position.x < -1e15, 0);
 	ERR_FAIL_COND_V(p_aabb.position.y > 1e15 || p_aabb.position.y < -1e15, 0);
 	ERR_FAIL_COND_V(p_aabb.position.z > 1e15 || p_aabb.position.z < -1e15, 0);
 	ERR_FAIL_COND_V(p_aabb.size.x > 1e15 || p_aabb.size.x < 0.0, 0);
 	ERR_FAIL_COND_V(p_aabb.size.y > 1e15 || p_aabb.size.y < 0.0, 0);
 	ERR_FAIL_COND_V(p_aabb.size.z > 1e15 || p_aabb.size.z < 0.0, 0);
+*/
 	ERR_FAIL_COND_V(Math::is_nan(p_aabb.size.x), 0);
 	ERR_FAIL_COND_V(Math::is_nan(p_aabb.size.y), 0);
 	ERR_FAIL_COND_V(Math::is_nan(p_aabb.size.z), 0);
@@ -834,12 +839,14 @@ void Octree<T, use_pairs, AL>::move(OctreeElementID p_id, const AABB &p_aabb) {
 
 #ifdef DEBUG_ENABLED
 	// check for AABB validity
+/* // huge support
 	ERR_FAIL_COND(p_aabb.position.x > 1e15 || p_aabb.position.x < -1e15);
 	ERR_FAIL_COND(p_aabb.position.y > 1e15 || p_aabb.position.y < -1e15);
 	ERR_FAIL_COND(p_aabb.position.z > 1e15 || p_aabb.position.z < -1e15);
 	ERR_FAIL_COND(p_aabb.size.x > 1e15 || p_aabb.size.x < 0.0);
 	ERR_FAIL_COND(p_aabb.size.y > 1e15 || p_aabb.size.y < 0.0);
 	ERR_FAIL_COND(p_aabb.size.z > 1e15 || p_aabb.size.z < 0.0);
+*/
 	ERR_FAIL_COND(Math::is_nan(p_aabb.size.x));
 	ERR_FAIL_COND(Math::is_nan(p_aabb.size.y));
 	ERR_FAIL_COND(Math::is_nan(p_aabb.size.z));
@@ -1139,6 +1146,77 @@ void Octree<T, use_pairs, AL>::_cull_aabb(Octant *p_octant, const AABB &p_aabb, 
 }
 
 template <class T, bool use_pairs, class AL>
+void Octree<T, use_pairs, AL>::_just_get_all(Octant *p_octant, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask) {
+
+	if (*p_result_idx == p_result_max)
+		return; //pointless
+
+	if (!p_octant->elements.empty()) {
+
+		typename List<Element *, AL>::Element *I;
+		I = p_octant->elements.front();
+		for (; I; I = I->next()) {
+
+			Element *e = I->get();
+
+			if (e->last_pass == pass || (use_pairs && !(e->pairable_type & p_mask)))
+				continue;
+			e->last_pass = pass;
+
+			if (true) {
+
+				if (*p_result_idx < p_result_max) {
+
+					p_result_array[*p_result_idx] = e->userdata;
+					if (p_subindex_array)
+						p_subindex_array[*p_result_idx] = e->subindex;
+
+					(*p_result_idx)++;
+				} else {
+
+					return; // pointless to continue
+				}
+			}
+		}
+	}
+
+	if (use_pairs && !p_octant->pairable_elements.empty()) {
+
+		typename List<Element *, AL>::Element *I;
+		I = p_octant->pairable_elements.front();
+		for (; I; I = I->next()) {
+
+			Element *e = I->get();
+
+			if (e->last_pass == pass || (use_pairs && !(e->pairable_type & p_mask)))
+				continue;
+			e->last_pass = pass;
+
+			if (true) {
+
+				if (*p_result_idx < p_result_max) {
+
+					p_result_array[*p_result_idx] = e->userdata;
+					if (p_subindex_array)
+						p_subindex_array[*p_result_idx] = e->subindex;
+					(*p_result_idx)++;
+				} else {
+
+					return; // pointless to continue
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < 8; i++) {
+
+		if (p_octant->children[i]) {
+			_just_get_all(p_octant->children[i], p_result_array, p_result_idx, p_result_max, p_subindex_array, p_mask);
+		}
+	}
+}
+
+template <class T, bool use_pairs, class AL>
 void Octree<T, use_pairs, AL>::_cull_segment(Octant *p_octant, const Vector3 &p_from, const Vector3 &p_to, T **p_result_array, int *p_result_idx, int p_result_max, int *p_subindex_array, uint32_t p_mask) {
 
 	if (*p_result_idx == p_result_max)
@@ -1326,6 +1404,20 @@ int Octree<T, use_pairs, AL>::cull_aabb(const AABB &p_aabb, T **p_result_array, 
 
 	return result_count;
 }
+
+template <class T, bool use_pairs, class AL>
+int Octree<T, use_pairs, AL>::just_get_all(T **p_result_array, int p_result_max, int *p_subindex_array, uint32_t p_mask) {
+
+	if (!root)
+		return 0;
+
+	int result_count = 0;
+	pass++;
+	_just_get_all(root, p_result_array, &result_count, p_result_max, p_subindex_array, p_mask);
+
+	return result_count;
+}
+
 
 template <class T, bool use_pairs, class AL>
 int Octree<T, use_pairs, AL>::cull_segment(const Vector3 &p_from, const Vector3 &p_to, T **p_result_array, int p_result_max, int *p_subindex_array, uint32_t p_mask) {

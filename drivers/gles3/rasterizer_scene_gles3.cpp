@@ -2556,7 +2556,9 @@ void RasterizerSceneGLES3::_setup_environment(Environment *env, const CameraMatr
 	//time global variables
 	state.ubo_data.time = storage->frame.time[0];
 
+	state.ubo_data.z_near = p_cam_projection.get_z_near();
 	state.ubo_data.z_far = p_cam_projection.get_z_far();
+	state.ubo_data.fcoef = 2.0 / (Math::log(state.ubo_data.z_far + 1.0) / Math_LN2);
 	//bg and ambient
 	if (env) {
 		state.ubo_data.bg_energy = env->bg_energy;
@@ -4978,6 +4980,8 @@ void RasterizerSceneGLES3::set_debug_draw_mode(VS::ViewportDebugDraw p_debug_dra
 }
 
 void RasterizerSceneGLES3::initialize() {
+
+	//glEnable(GL_DEPTH_CLAMP);
 
 	render_pass = 0;
 

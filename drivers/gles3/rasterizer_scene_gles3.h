@@ -136,7 +136,9 @@ public:
 			float shadow_directional_pixel_size[2];
 
 			float time;
+			float z_near;
 			float z_far;
+			float fcoef;
 			float reflection_multiplier;
 			float subsurface_scatter_width;
 			float ambient_occlusion_affect_light;

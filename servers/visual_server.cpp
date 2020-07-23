@@ -2380,6 +2380,14 @@ void VisualServer::set_render_loop_enabled(bool p_enabled) {
 	render_loop_enabled = p_enabled;
 }
 
+bool VisualServer::is_culling_enabled() const {
+	return culling_enabled;
+}
+
+void VisualServer::set_culling_enabled(bool p_enabled) {
+	culling_enabled = p_enabled;
+}
+
 VisualServer::VisualServer() {
 
 	//ERR_FAIL_COND(singleton);

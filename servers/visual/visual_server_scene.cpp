@@ -787,8 +787,11 @@ Vector<ObjectID> VisualServerScene::instances_cull_aabb(const AABB &p_aabb, RID 
 
 	int culled = 0;
 	Instance *cull[1024];
-	culled = scenario->octree.cull_aabb(p_aabb, cull, 1024);
-
+	
+	if(VS::get_singleton()->is_culling_enabled())
+		culled = scenario->octree.cull_aabb(p_aabb, cull, 1024);
+	else
+		culled = scenario->octree.just_get_all(cull, 1024);
 	for (int i = 0; i < culled; i++) {
 
 		Instance *instance = cull[i];
@@ -810,8 +813,11 @@ Vector<ObjectID> VisualServerScene::instances_cull_ray(const Vector3 &p_from, co
 
 	int culled = 0;
 	Instance *cull[1024];
-	culled = scenario->octree.cull_segment(p_from, p_from + p_to * 10000, cull, 1024);
-
+	if(VS::get_singleton()->is_culling_enabled())
+		culled = scenario->octree.cull_segment(p_from, p_from + p_to * 10000, cull, 1024);
+	else
+		culled = scenario->octree.just_get_all(cull, 1024);
+	
 	for (int i = 0; i < culled; i++) {
 		Instance *instance = cull[i];
 		ERR_CONTINUE(!instance);
@@ -833,8 +839,11 @@ Vector<ObjectID> VisualServerScene::instances_cull_convex(const Vector<Plane> &p
 	int culled = 0;
 	Instance *cull[1024];
 
-	culled = scenario->octree.cull_convex(p_convex, cull, 1024);
-
+	if(VS::get_singleton()->is_culling_enabled())
+		culled = scenario->octree.cull_convex(p_convex, cull, 1024);
+	else
+		culled = scenario->octree.just_get_all(cull, 1024);
+	
 	for (int i = 0; i < culled; i++) {
 
 		Instance *instance = cull[i];
@@ -1865,7 +1874,10 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 	float z_far = p_cam_projection.get_z_far();
 
 	/* STEP 2 - CULL */
-	instance_cull_count = scenario->octree.cull_convex(planes, instance_cull_result, MAX_INSTANCE_CULL);
+	if(VS::get_singleton()->is_culling_enabled())
+		instance_cull_count = scenario->octree.cull_convex(planes, instance_cull_result, MAX_INSTANCE_CULL);
+	else
+		instance_cull_count = scenario->octree.just_get_all(instance_cull_result, MAX_INSTANCE_CULL);
 	light_cull_count = 0;
 
 	reflection_probe_cull_count = 0;

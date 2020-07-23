@@ -47,10 +47,12 @@ class VisualServer : public Object {
 
 	int mm_policy;
 	bool render_loop_enabled = true;
+	bool culling_enabled = true;
 
 	void _camera_set_orthogonal(RID p_camera, float p_size, float p_z_near, float p_z_far);
 	void _canvas_item_add_style_box(RID p_item, const Rect2 &p_rect, const Rect2 &p_source, RID p_texture, const Vector<float> &p_margins, const Color &p_modulate = Color(1, 1, 1));
 	Array _get_array_from_surface(uint32_t p_format, PoolVector<uint8_t> p_vertex_data, int p_vertex_len, PoolVector<uint8_t> p_index_data, int p_index_len) const;
+
 
 protected:
 	RID _make_test_cube();
@@ -1066,6 +1068,9 @@ public:
 
 	bool is_render_loop_enabled() const;
 	void set_render_loop_enabled(bool p_enabled);
+	
+	void set_culling_enabled(bool p_enabled);
+	bool is_culling_enabled() const;
 
 	VisualServer();
 	virtual ~VisualServer();

@@ -944,6 +944,15 @@ float Environment::get_fog_height_curve() const {
 	return fog_height_curve;
 }
 
+void Environment::set_culling_enabled(bool p_enabled){
+	culling_enabled = p_enabled;
+	VS::get_singleton()->set_culling_enabled(culling_enabled);
+}
+
+bool Environment::is_culling_enabled() const {
+	return culling_enabled;
+}
+
 void Environment::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_background", "mode"), &Environment::set_background);
@@ -973,6 +982,12 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_ambient_light_energy"), &Environment::get_ambient_light_energy);
 	ClassDB::bind_method(D_METHOD("get_ambient_light_sky_contribution"), &Environment::get_ambient_light_sky_contribution);
 	ClassDB::bind_method(D_METHOD("get_camera_feed_id"), &Environment::get_camera_feed_id);
+
+	ClassDB::bind_method(D_METHOD("set_culling_enabled", "enabled"), &Environment::set_culling_enabled);
+	ClassDB::bind_method(D_METHOD("is_culling_enabled"), &Environment::is_culling_enabled);
+
+	ADD_GROUP("Culling", "culling_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "culling_enabled"), "set_culling_enabled", "is_culling_enabled");
 
 	ADD_GROUP("Background", "background_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "background_mode", PROPERTY_HINT_ENUM, "Clear Color,Custom Color,Sky,Color+Sky,Canvas,Keep,Camera Feed"), "set_background", "get_background");
@@ -1033,6 +1048,8 @@ void Environment::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_fog_height_curve", "curve"), &Environment::set_fog_height_curve);
 	ClassDB::bind_method(D_METHOD("get_fog_height_curve"), &Environment::get_fog_height_curve);
+	
+
 
 	ADD_GROUP("Fog", "fog_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fog_enabled"), "set_fog_enabled", "is_fog_enabled");

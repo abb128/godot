@@ -176,6 +176,8 @@ private:
 	float fog_height_min;
 	float fog_height_max;
 	float fog_height_curve;
+	
+	bool culling_enabled;
 
 protected:
 	static void _bind_methods();
@@ -404,6 +406,9 @@ public:
 
 	void set_fog_height_curve(float p_distance);
 	float get_fog_height_curve() const;
+
+	void set_culling_enabled(bool p_enabled);
+	bool is_culling_enabled() const;
 
 	virtual RID get_rid() const;
 

@@ -70,8 +70,8 @@
 #define FREELOOK_MIN_SPEED 0.01
 #define FREELOOK_SPEED_MULTIPLIER 1.08
 
-#define MIN_Z 0.01
-#define MAX_Z 1000000.0
+#define MIN_Z 0.001
+#define MAX_Z 1000000000000000.0
 
 #define MIN_FOV 0.01
 #define MAX_FOV 179

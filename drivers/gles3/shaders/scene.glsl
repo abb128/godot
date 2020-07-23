@@ -87,7 +87,9 @@ layout(std140) uniform SceneData { // ubo:0
 	highp vec2 directional_shadow_pixel_size;
 
 	highp float time;
+	highp float z_near;
 	highp float z_far;
+	highp float fcoef;
 	mediump float reflection_multiplier;
 	mediump float subsurface_scatter_width;
 	mediump float ambient_occlusion_affect_light;
@@ -254,6 +256,8 @@ void light_process_spot(int idx, vec3 vertex, vec3 eye_vec, vec3 normal, float r
 
 out highp vec3 vertex_interp;
 out vec3 normal_interp;
+
+out highp float flogz;
 
 #if defined(ENABLE_COLOR_INTERP)
 out vec4 color_interp;
@@ -519,6 +523,9 @@ VERTEX_SHADER_CODE
 	gl_Position = position;
 #else
 	gl_Position = projection_matrix * vec4(vertex_interp, 1.0);
+	gl_Position.z = log2(max(z_near, 1.0 + gl_Position.w)) * fcoef - 1.0;
+	flogz = 1.0 + gl_Position.w;
+	gl_Position.z = max(gl_Position.z, 0.0);
 #endif
 
 	position_interp = gl_Position;
@@ -573,7 +580,6 @@ VERTEX_SHADER_CODE
 /* clang-format off */
 [fragment]
 
-
 /* texture unit usage, N is max_texture_unity-N
 
 1-skeleton
@@ -616,6 +622,8 @@ in vec3 binormal_interp;
 
 in highp vec3 vertex_interp;
 in vec3 normal_interp;
+
+in highp float flogz;
 
 /* PBR CHANNELS */
 
@@ -725,7 +733,9 @@ layout(std140) uniform SceneData {
 	highp vec2 directional_shadow_pixel_size;
 
 	highp float time;
+	highp float z_near;
 	highp float z_far;
+	highp float fcoef;
 	mediump float reflection_multiplier;
 	mediump float subsurface_scatter_width;
 	mediump float ambient_occlusion_affect_light;
@@ -1614,6 +1624,10 @@ void main() {
 
 	if (dp_clip > 0.0)
 		discard;
+#endif
+
+#ifndef OVERRIDE_POSITION
+	gl_FragDepth = clamp(log2(flogz) * fcoef * 0.5, 0.0, 1.0);
 #endif
 
 	//lay out everything, whathever is unused is optimized away anyway
